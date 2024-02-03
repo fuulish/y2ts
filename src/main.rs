@@ -24,21 +24,18 @@ fn main() {
         process::exit(1);
     });
 
-    let rules_start = match content.find("%%") {
-        Some(index) => index,
-        None => {
-            eprintln!("Could not find start of grammar rules");
-            process::exit(1);
-        }
-    };
+    let rules_start = content.find("%%").unwrap_or_else(|| {
+        eprintln!("Could not find start of grammar rules");
+        process::exit(1);
+    });
 
-    let rules_end = match content[rules_start..].find("%%") {
-        Some(index) => index,
-        None => {
-            eprintln!("Could not find end of grammar rules");
-            process::exit(1);
-        }
-    };
+    let rules_end = content[rules_start + 2..].find("%%").unwrap_or_else(|| {
+        eprintln!("Could not find end of grammar rules");
+        process::exit(1);
+    }) + rules_start
+        + 2;
+
+    println!("{rules_start}:{rules_end}");
 
     let content = &content[rules_start + 2..rules_end];
     let content = remove_semantic_actions(content.trim());
@@ -57,7 +54,8 @@ fn main() {
         .filter(|rule| {
             let mut rule_parts = rule.split(":");
             let rule_name = rule_parts.next().unwrap();
-            let rule_branches = rule_parts.next().unwrap();
+            let rule_branches = rule_parts.next().unwrap(); // XXX: could be rightfully empty, do not handle
+                                                            // with panic
 
             let mut rule_iter = rule_branches.split("|");
 

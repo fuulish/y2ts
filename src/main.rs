@@ -42,6 +42,16 @@ fn main() {
 
     let content = &content[rules_start + 2..rules_end];
     let content = remove_semantic_actions(content.trim());
+
+    let mut output = String::new();
+    output.push_str(
+        "module.exports = grammar({\n\
+             name: 'ALANG',\n\
+             \n
+             rules: {",
+    );
+
+    output.push_str("}\n});");
 }
 
 fn remove_semantic_actions(rule: &str) -> &str {

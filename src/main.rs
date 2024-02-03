@@ -51,7 +51,41 @@ fn main() {
              rules: {",
     );
 
+    let rules = content
+        .split(";")
+        .filter(|rule| !rule.is_empty())
+        .filter(|rule| {
+            let mut rule_parts = rule.split(":");
+            let rule_name = rule_parts.next().unwrap();
+            let rule_branches = rule_parts.next().unwrap();
+
+            let mut rule_iter = rule_branches.split("|");
+
+            !rule_iter.next().unwrap().is_empty()
+
+            /*
+            rule_branches
+                .split("|")
+                .filter(|&branch| !branch.is_empty())
+                .map(|branch| from_branch_rule(branch))
+                .collect::<Vec<_>>()
+            */
+        })
+        .map(|rule| {
+            println!("{rule}");
+            rule
+        })
+        .collect::<Vec<_>>();
+
+    for line in rules {
+        output.push_str(line);
+    }
+
     output.push_str("}\n});");
+}
+
+fn from_branch_rule(branch_rule: &str) -> &str {
+    branch_rule
 }
 
 fn remove_semantic_actions(rule: &str) -> &str {

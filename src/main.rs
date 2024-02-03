@@ -48,35 +48,23 @@ fn main() {
              rules: {",
     );
 
-    let rules = content
-        .split(";")
-        .filter(|rule| !rule.is_empty())
-        .filter(|rule| {
-            let mut rule_parts = rule.split(":");
-            let rule_name = rule_parts.next().unwrap();
-            let rule_branches = rule_parts.next().unwrap(); // XXX: could be rightfully empty, do not handle
-                                                            // with panic
+    for rule in content.split(";") {
+        if rule.is_empty() {
+            continue;
+        }
+        let mut split = rule.trim().split(":");
 
-            let mut rule_iter = rule_branches.split("|");
+        let name = split.next().unwrap(); // This really should not fail
 
-            !rule_iter.next().unwrap().is_empty()
+        let branches: Vec<&str> = split.next().unwrap().split("|").collect(); // this shouldn't fail either
 
-            /*
-            rule_branches
-                .split("|")
-                .filter(|&branch| !branch.is_empty())
-                .map(|branch| from_branch_rule(branch))
-                .collect::<Vec<_>>()
-            */
-        })
-        .map(|rule| {
-            println!("{rule}");
-            rule
-        })
-        .collect::<Vec<_>>();
+        let formed_rule = match branches.len() {
+            0 => continue,
+            1 => from_one_branch_rule(name, branches),
+            _ => from_many_branches_rule(name, branches),
+        };
 
-    for line in rules {
-        output.push_str(line);
+        output.push_str(&formed_rule);
     }
 
     output.push_str("}\n});");

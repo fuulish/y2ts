@@ -70,8 +70,26 @@ fn main() {
     output.push_str("}\n});");
 }
 
-fn from_branch_rule(branch_rule: &str) -> &str {
-    branch_rule
+fn from_many_branches_rule(rule_name: &str, branch_rule: Vec<&str>) -> String {
+    branch_rule[0].to_owned()
+}
+
+fn from_one_branch_rule(rule_name: &str, rule_branches: Vec<&str>) -> String {
+    let mut builder = String::new();
+    builder.push_str("{rule_name}: $ => ");
+
+    let branch = rule_branches[0].trim().split(" ").collect::<Vec<_>>();
+    if branch.len() == 1 {
+        builder.push_str(&format!("$.{},", branch[0]));
+    } else {
+        builder.push_str(process_branch(branch))
+    }
+    builder.push_str("\n");
+    builder
+}
+
+fn process_branch(branch: Vec<&str>) -> &str {
+    branch[0]
 }
 
 fn remove_semantic_actions(rule: &str) -> &str {

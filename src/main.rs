@@ -37,8 +37,6 @@ fn main() {
     }) + rules_start
         + 2;
 
-    println!("{rules_start}:{rules_end}");
-
     let mut optionals = Vec::<String>::new();
     let content = &content[rules_start + 2..rules_end];
     let content = remove_semantic_actions(content.trim());

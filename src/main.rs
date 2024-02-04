@@ -85,14 +85,25 @@ fn from_one_branch_rule(rule_name: &str, rule_branches: Vec<&str>) -> String {
     if branch.len() == 1 {
         builder.push_str(&format!("$.{},", branch[0]));
     } else {
-        builder.push_str(process_branch(branch))
+        builder.push_str(&process_branch(branch))
     }
     builder.push_str("\n");
     builder
 }
 
-fn process_branch(branch: Vec<&str>) -> &str {
-    branch[0]
+fn process_branch(branch: Vec<&str>) -> String {
+    let mut builder = String::new();
+
+    if branch.len() > 1 {
+        builder.push_str("seq(\n");
+    }
+    for element in branch.iter() {
+        builder.push_str(&format!("$.{},\n", element));
+    }
+    if branch.len() > 1 {
+        builder.push_str("),\n");
+    }
+    builder
 }
 
 fn remove_semantic_actions(rule: &str) -> &str {

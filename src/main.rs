@@ -2,6 +2,8 @@ use std::env;
 use std::fs;
 use std::process;
 
+use regex::Regex;
+
 fn parse(mut args: env::Args) -> Result<String, &'static str> {
     args.next(); // get rid of program name
 
@@ -153,6 +155,10 @@ fn process_branch(branch: Vec<&str>) -> String {
     builder
 }
 
-fn remove_semantic_actions(rule: &str) -> &str {
-    rule
+fn remove_semantic_actions(rule: &str) -> String {
+    let semantic_actions_regex = Regex::new("\\{(.|\\n)+?}").unwrap();
+    let comments_regex = Regex::new("(//.*?\\n|/\\*(.|\\n)*?\\*/)").unwrap();
+
+    let result = semantic_actions_regex.replace(rule, "");
+    comments_regex.replace(&result, "").as_ref().to_owned()
 }

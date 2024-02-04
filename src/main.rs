@@ -37,6 +37,7 @@ fn main() {
 
     println!("{rules_start}:{rules_end}");
 
+    let mut optionals = Vec::<String>::new();
     let content = &content[rules_start + 2..rules_end];
     let content = remove_semantic_actions(content.trim());
 
@@ -68,22 +69,64 @@ fn main() {
         let formed_rule = match branches.len() {
             0 => continue,
             1 => from_one_branch_rule(name, branches),
-            _ => from_many_branches_rule(name, branches),
+            _ => from_many_branches_rule(name, branches, &mut optionals),
         };
 
         output.push_str(&formed_rule);
     }
 
     output.push_str("}\n});");
+    output = post_process(output, &optionals);
+    println!("{output}");
 }
 
-fn from_many_branches_rule(rule_name: &str, branch_rule: Vec<&str>) -> String {
-    branch_rule[0].to_owned()
+// XXX: this could probably be handled better, and directly included in the from_many_branches_rule
+fn post_process(mut output: String, optionals: &Vec<String>) -> String {
+    for optional_rule in optionals.iter() {
+        output = output.replace(
+            &format!("$.{},", optional_rule),
+            &format!("optional($.{}),", optional_rule),
+        );
+    }
+
+    output
+}
+
+fn make_header(name: &str) -> String {
+    format!("{name}: $ => ")
+}
+
+fn from_many_branches_rule(
+    rule_name: &str,
+    branch_rule: Vec<&str>,
+    optionals: &mut Vec<String>,
+) -> String {
+    let mut builder = String::new();
+    builder.push_str(&make_header(rule_name));
+
+    let actually_more_than_one_branch = branch_rule.iter().filter(|&x| !x.is_empty()).count() > 1;
+    if actually_more_than_one_branch {
+        builder.push_str("choice(\n");
+    }
+
+    for branch in branch_rule.iter() {
+        if branch.trim().is_empty() {
+            optionals.push(rule_name.to_owned());
+        } else {
+            builder.push_str(&process_branch(branch.trim().split(" ").collect()));
+        }
+    }
+
+    if actually_more_than_one_branch {
+        builder.push_str("),\n\n");
+    }
+
+    builder
 }
 
 fn from_one_branch_rule(rule_name: &str, rule_branches: Vec<&str>) -> String {
     let mut builder = String::new();
-    builder.push_str(&format!("{rule_name}: $ => "));
+    builder.push_str(&make_header(rule_name));
 
     let branch = rule_branches[0].trim().split(" ").collect::<Vec<_>>();
     if branch.len() == 1 {

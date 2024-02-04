@@ -48,7 +48,10 @@ fn main() {
              rules: {",
     );
 
-    for rule in content.split(";") {
+    for rule in content.split(";\n") {
+        // XXX: <-- this is not the original logic (b/c that didn't
+        // work for languages with semi-colons in rule actions)
+        // XXX: generalize using regular expressions!
         if rule.is_empty() {
             continue;
         }
@@ -76,7 +79,7 @@ fn from_many_branches_rule(rule_name: &str, branch_rule: Vec<&str>) -> String {
 
 fn from_one_branch_rule(rule_name: &str, rule_branches: Vec<&str>) -> String {
     let mut builder = String::new();
-    builder.push_str("{rule_name}: $ => ");
+    builder.push_str(&format!("{rule_name}: $ => "));
 
     let branch = rule_branches[0].trim().split(" ").collect::<Vec<_>>();
     if branch.len() == 1 {

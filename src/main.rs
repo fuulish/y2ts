@@ -59,6 +59,10 @@ fn main() {
 
         let name = split.next().unwrap(); // This really should not fail
 
+        // XXX: still need to cleanup rule processing
+        //      there are items (e.g. tokens, non-terminals and the like declared using % at the
+        //      beginning of lines)
+        // XXX: what about %empty rules?
         let branches: Vec<&str> = split.next().unwrap().split("|").collect(); // this shouldn't fail either
 
         let formed_rule = match branches.len() {

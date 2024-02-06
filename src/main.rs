@@ -159,7 +159,12 @@ fn process_branch(branch: Vec<&str>) -> String {
 fn remove_semantic_actions(rule: &str) -> String {
     let semantic_actions_regex = Regex::new("\\{(.|\\n)+?}").unwrap();
     let comments_regex = Regex::new("(//.*?\\n|/\\*(.|\\n)*?\\*/)").unwrap();
+    let tokens_terminals_regex = Regex::new("\\n(%nterm|%token).+?;").unwrap();
 
     let result = semantic_actions_regex.replace_all(rule, "");
-    comments_regex.replace_all(&result, "").as_ref().to_owned()
+    let result = comments_regex.replace_all(&result, "");
+    tokens_terminals_regex
+        .replace_all(&result, "")
+        .as_ref()
+        .to_owned()
 }

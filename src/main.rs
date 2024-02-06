@@ -40,6 +40,8 @@ fn main() {
     let mut optionals = Vec::<String>::new();
     let content = &content[rules_start + 2..rules_end];
     let content = remove_semantic_actions(content.trim());
+    // XXX: also remove tokens, terminals, and non-terminals, here, and everything else that
+    // doesn't belong
 
     let mut output = String::new();
     output.push_str(
@@ -49,7 +51,7 @@ fn main() {
              rules: {",
     );
 
-    for rule in content.split(";\n") {
+    for rule in content.split(";") {
         // XXX: <-- this is not the original logic (b/c that didn't
         // work for languages with semi-colons in rule actions)
         // XXX: generalize using regular expressions!
@@ -157,6 +159,6 @@ fn remove_semantic_actions(rule: &str) -> String {
     let semantic_actions_regex = Regex::new("\\{(.|\\n)+?}").unwrap();
     let comments_regex = Regex::new("(//.*?\\n|/\\*(.|\\n)*?\\*/)").unwrap();
 
-    let result = semantic_actions_regex.replace(rule, "");
-    comments_regex.replace(&result, "").as_ref().to_owned()
+    let result = semantic_actions_regex.replace_all(rule, "");
+    comments_regex.replace_all(&result, "").as_ref().to_owned()
 }

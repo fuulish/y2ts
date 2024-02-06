@@ -55,9 +55,10 @@ fn main() {
         // XXX: <-- this is not the original logic (b/c that didn't
         // work for languages with semi-colons in rule actions)
         // XXX: generalize using regular expressions!
-        if rule.is_empty() {
+        if rule.trim().is_empty() {
             continue;
         }
+
         let mut split = rule.trim().split(":");
 
         let name = split.next().unwrap(); // This really should not fail

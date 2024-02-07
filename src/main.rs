@@ -47,7 +47,6 @@ fn main() {
     output.push_str(
         "module.exports = grammar({\n\
              name: 'ALANG',\n\
-             \n
              rules: {",
     );
 

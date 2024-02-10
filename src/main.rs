@@ -130,13 +130,21 @@ fn from_many_branches_rule(
     builder
 }
 
+fn get_token(data: &str) -> String {
+    if data.starts_with("'") && data.ends_with("'") {
+        data.to_owned()
+    } else {
+        format!("$.{}", data)
+    }
+}
+
 fn from_one_branch_rule(rule_name: &str, rule_branches: Vec<&str>) -> String {
     let mut builder = String::new();
     builder.push_str(&make_header(rule_name));
 
     let branch = rule_branches[0].trim().split(" ").collect::<Vec<_>>();
     if branch.len() == 1 {
-        builder.push_str(&format!("$.{},", branch[0]));
+        builder.push_str(&get_token(&branch[0]));
     } else {
         builder.push_str(&process_branch(branch))
     }
@@ -151,7 +159,7 @@ fn process_branch(branch: Vec<&str>) -> String {
         builder.push_str("seq(\n");
     }
     for element in branch.iter() {
-        builder.push_str(&format!("$.{},\n", element));
+        builder.push_str(&format!("{},\n", get_token(element)));
     }
     if branch.len() > 1 {
         builder.push_str("),\n");

@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::io::prelude::*;
 use std::process;
 
 use regex::Regex;
@@ -39,9 +40,12 @@ fn main() {
 
     let mut optionals = Vec::<String>::new();
     let content = &content[rules_start + 2..rules_end];
-    let content = remove_semantic_actions(content.trim());
+    let content = cleanup_grammar(content.trim());
     // XXX: also remove tokens, terminals, and non-terminals, here, and everything else that
     // doesn't belong
+
+    let mut buffer = fs::File::create("cleaned_grammar.y").unwrap();
+    buffer.write_all(&content.as_bytes()).unwrap();
 
     let mut output = String::new();
     output.push_str(
@@ -156,12 +160,62 @@ fn process_branch(branch: Vec<&str>) -> String {
 }
 
 fn remove_semantic_actions(rule: &str) -> String {
-    let semantic_actions_regex = Regex::new("\\{(.|\\n)+?}").unwrap();
+    let mut first_brace = match rule.find("{") {
+        Some(i) => i,
+        None => return rule.to_owned(),
+    };
+
+    let mut open_part = &rule[first_brace + 1..];
+    let last_brace;
+
+    let mut stripped = rule[..first_brace].to_owned();
+
+    let mut nopen = 1;
+
+    loop {
+        // println!("{open_part}");
+        let open_brace = match open_part.find("{") {
+            Some(i) => i,
+            None => open_part.len(),
+        };
+        let close_brace = match open_part.find("}") {
+            Some(i) => i,
+            None => open_part.len(),
+        };
+
+        nopen = if close_brace < open_brace {
+            first_brace += close_brace;
+
+            nopen - 1
+        } else if open_brace < close_brace {
+            first_brace += open_brace;
+
+            nopen + 1
+        } else {
+            nopen // cannot panic - this is a real possibility
+        };
+        // println!("{nopen}");
+
+        if nopen == 0 {
+            last_brace = first_brace;
+            break;
+        }
+
+        open_part = &rule[first_brace + 1..];
+    }
+
+    stripped.push_str(&rule[last_brace + 1..]);
+    stripped
+}
+
+fn cleanup_grammar(content: &str) -> String {
+    // let semantic_actions_regex = Regex::new("\\{(.|\\n)+?}").unwrap();
     let comments_regex = Regex::new("(//.*?\\n|/\\*(.|\\n)*?\\*/)").unwrap();
     let tokens_terminals_regex = Regex::new("\\n(%nterm|%token).+?;").unwrap();
+    let no_actions = remove_semantic_actions(&content);
 
-    let result = semantic_actions_regex.replace_all(rule, "");
-    let result = comments_regex.replace_all(&result, "");
+    // let result = remove_semantic_actions(&rule);
+    let result = comments_regex.replace_all(&no_actions, "");
     tokens_terminals_regex
         .replace_all(&result, "")
         .as_ref()

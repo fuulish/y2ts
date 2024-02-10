@@ -221,9 +221,11 @@ fn cleanup_grammar(content: &str) -> String {
     let comments_regex = Regex::new("(//.*?\\n|/\\*(.|\\n)*?\\*/)").unwrap();
     let tokens_terminals_regex = Regex::new("\\n(%nterm|%token).+?;").unwrap();
     let no_actions = remove_semantic_actions(&content);
+    let semicolon_apostrophe = Regex::new("';'").unwrap(); // XXX: just a hack
 
     // let result = remove_semantic_actions(&rule);
     let result = comments_regex.replace_all(&no_actions, "");
+    let result = semicolon_apostrophe.replace_all(&result, "SEMICOLON"); // XXX: just a hack
     tokens_terminals_regex
         .replace_all(&result, "")
         .as_ref()

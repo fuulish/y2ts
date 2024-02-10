@@ -159,21 +159,21 @@ fn process_branch(branch: Vec<&str>) -> String {
     builder
 }
 
-fn remove_semantic_actions(rule: &str) -> String {
-    let mut first_brace = match rule.find("{") {
+fn remove_first_semantic_action(content: &str) -> Option<String> {
+    let mut first_brace = match content.find("{") {
         Some(i) => i,
-        None => return rule.to_owned(),
+        None => return None,
     };
 
-    let mut open_part = &rule[first_brace + 1..];
+    let mut open_part = &content[first_brace + 1..];
     let last_brace;
 
-    let mut stripped = rule[..first_brace].to_owned();
+    let mut stripped = content[..first_brace].to_owned();
 
     let mut nopen = 1;
 
+    first_brace += 1;
     loop {
-        // println!("{open_part}");
         let open_brace = match open_part.find("{") {
             Some(i) => i,
             None => open_part.len(),
@@ -192,20 +192,28 @@ fn remove_semantic_actions(rule: &str) -> String {
 
             nopen + 1
         } else {
-            nopen // cannot panic - this is a real possibility
+            panic!();
         };
-        // println!("{nopen}");
+        first_brace += 1;
 
         if nopen == 0 {
             last_brace = first_brace;
             break;
         }
 
-        open_part = &rule[first_brace + 1..];
+        open_part = &content[first_brace..];
     }
 
-    stripped.push_str(&rule[last_brace + 1..]);
-    stripped
+    stripped.push_str(&content[last_brace..]);
+    Some(stripped)
+}
+
+fn remove_semantic_actions(content: &str) -> String {
+    let mut copy = content.to_owned();
+    while let Some(value) = remove_first_semantic_action(&copy) {
+        copy = value;
+    }
+    copy
 }
 
 fn cleanup_grammar(content: &str) -> String {

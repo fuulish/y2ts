@@ -117,9 +117,9 @@ fn from_many_branches_rule(
 
     for branch in branch_rule.iter() {
         if branch.trim().is_empty() {
-            optionals.push(rule_name.to_owned());
+            optionals.push(rule_name.to_owned()); // XXX:say what???
         } else {
-            builder.push_str(&process_branch(branch.trim().split(" ").collect()));
+            builder.push_str(&process_branch(branch.trim().split_whitespace().collect()));
         }
     }
 
@@ -142,7 +142,10 @@ fn from_one_branch_rule(rule_name: &str, rule_branches: Vec<&str>) -> String {
     let mut builder = String::new();
     builder.push_str(&make_header(rule_name));
 
-    let branch = rule_branches[0].trim().split(" ").collect::<Vec<_>>();
+    let branch = rule_branches[0]
+        .trim()
+        .split_whitespace()
+        .collect::<Vec<_>>();
     if branch.len() == 1 {
         builder.push_str(&get_token(&branch[0]));
     } else {
